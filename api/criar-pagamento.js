@@ -30,6 +30,15 @@ function origemDe(req) {
   return `${proto}://${host}`;
 }
 
+// O InfinitePay só aceita ASCII na descrição — acentos e travessão (—) dão 400.
+function soAscii(s) {
+  return String(s)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')  // remove acentos
+    .replace(/[–—]/g, '-')                    // en/em-dash -> hifen
+    .replace(/[^\x20-\x7E]/g, '')                       // descarta qualquer outro nao-ASCII
+    .trim();
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -51,7 +60,8 @@ module.exports = async function handler(req, res) {
 
   const payload = {
     handle,
-    order_nsu: `presente-${presente.id}-${Date.now()}`,
+    // order_nsu precisa ser numérico (só dígitos) — id da cota + timestamp
+    order_nsu: `${presente.id}${Date.now()}`,
     redirect_url: `${origem}/obrigado.html`,
     webhook_url: `${origem}/api/webhook`,
     items: [
@@ -59,7 +69,8 @@ module.exports = async function handler(req, res) {
         quantity: 1,
         // preço oficial, vindo do servidor, convertido para centavos
         price: Math.round(Number(presente.valor) * 100),
-        description: `${presente.nome} — Casamento Joyce & Pedro Henrique`,
+        // descrição em ASCII (InfinitePay rejeita acentos e travessão)
+        description: soAscii(`${presente.nome} - Casamento Joyce e Pedro Henrique`),
       },
     ],
   };
