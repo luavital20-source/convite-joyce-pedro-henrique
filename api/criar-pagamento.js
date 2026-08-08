@@ -70,7 +70,7 @@ module.exports = async function handler(req, res) {
         // preço oficial, vindo do servidor, convertido para centavos
         price: Math.round(Number(presente.valor) * 100),
         // descrição em ASCII (InfinitePay rejeita acentos e travessão)
-        description: soAscii(`${presente.nome} - Casamento Joyce e Pedro Henrique`),
+        description: soAscii(`${presente.nome} - Casamento Joyce Vitena e Pedro Henrique`),
       },
     ],
   };
